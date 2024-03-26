@@ -81,14 +81,21 @@ class Sudoku {
 
     override fun toString(): String {
         var retVal : String = ""
-
+        for (i in 0..8){
+            retVal += "__"
+        }
+        retVal += "_\n"
         for (i in 0 ..< 9){
-            retVal += "["
+            retVal += "|"
             for (j in 0 ..< 8){
                 retVal = retVal + grid[i][j] + " "
             }
-            retVal = retVal + grid[i][8] + "]\n"
+            retVal = retVal + grid[i][8] + "|\n"
         }
+        for (i in 0..8){
+            retVal += "__"
+        }
+        retVal += "_\n"
         return retVal
     }
 
@@ -122,6 +129,47 @@ class Sudoku {
         }
 
         return solveInternal(0,0)
+    }
+
+    fun isSolved(): Boolean {
+        // Check rows
+        for (row in 0 until 9) {
+            val rowSet = mutableSetOf<Int>()
+            for (col in 0 until 9) {
+                if (grid[row][col] !in 1..9 || grid[row][col] in rowSet) {
+                    return false
+                }
+                rowSet.add(grid[row][col])
+            }
+        }
+
+        // Check columns
+        for (col in 0 until 9) {
+            val colSet = mutableSetOf<Int>()
+            for (row in 0 until 9) {
+                if (grid[row][col] !in 1..9 || grid[row][col] in colSet) {
+                    return false
+                }
+                colSet.add(grid[row][col])
+            }
+        }
+
+        // Check 3x3 subgrids
+        for (startRow in 0 until 9 step 3) {
+            for (startCol in 0 until 9 step 3) {
+                val subgridSet = mutableSetOf<Int>()
+                for (row in startRow until startRow + 3) {
+                    for (col in startCol until startCol + 3) {
+                        if (grid[row][col] !in 1..9 || grid[row][col] in subgridSet) {
+                            return false
+                        }
+                        subgridSet.add(grid[row][col])
+                    }
+                }
+            }
+        }
+
+        return true
     }
 
 }

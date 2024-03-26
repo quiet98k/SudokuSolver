@@ -20,16 +20,19 @@ class SudokuTest {
         val test = Sudoku(grid)
         println(test)
 
+
         test.solve()
+        assert(test.isSolved())
         println(test)
     }
 
     @Test
     fun testEmpty(){
         for (i in 0..100){
-            val test = Sudoku("easy")
+            val test = Sudoku("hard")
             println(test)
             assert(test.solve())
+            assert(test.isSolved())
             println(test)
         }
     }
