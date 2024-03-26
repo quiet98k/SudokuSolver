@@ -1,46 +1,63 @@
 package org.example
 
+import java.util.*
+import kotlin.NoSuchElementException
 import kotlin.random.Random
 
 class Sudoku {
-    private val grid : Array<Array<Int>>
+    val grid : Array<Array<Int>>
 
     constructor(grid: Array<Array<Int>>){
+        require(grid.size == 9 && grid.all { it.size == 9 }) { "Invalid Sudoku grid size" }
         this.grid = grid
     }
 
-//    constructor(){
-//        this.grid = createSudoku()
-//    }
+    constructor(dif: String){
+        val grid = Array(9){Array(9){0} }
+        this.grid = createSudoku(grid, dif)
+    }
 
-//    private fun createSudoku(): Array<Array<Int>>{
-//        val grid = Array(9){Array(9){0} }
-//
-//        for (i in 0 .. 8){
-//            for (j in 0 .. 8){
-//                var k = Random.nextInt(1, 10)
-//                while (!isValid(i,j,k, grid)){
-//                    k = Random.nextInt(1, 10)
-//                }
-//                grid[i][j] = k
-//            }
-//        }
-//
-//        return grid
-//    }
+    private fun createSudoku(grid: Array<Array<Int>>, dif:String = "easy"): Array<Array<Int>>{
 
-
-
-    operator fun iterator():Sequence<Int> = sequence {
-        for (i in 0 ..< 9){
-            for (j in 0 ..< 9){
-                yield(grid[i][j])
-            }
+        val numToRemove = when (dif.lowercase(Locale.getDefault())) {
+            "easy" -> 40
+            "medium" -> 50
+            "hard" -> 55
+            "expert" -> 60
+            else -> throw IllegalArgumentException("Invalid difficulty level")
         }
+
+        solveWithGrid(grid)
+        removeCells(grid,numToRemove)
+
+        return grid
 
     }
 
-    fun isValid(r: Int, c: Int, k: Int): Boolean{
+
+    private fun removeCells(grid: Array<Array<Int>>, numToRemove: Int = 45) {
+
+        repeat(numToRemove) {
+            var row = Random.nextInt(0, 9)
+            var col = Random.nextInt(0, 9)
+
+            // Ensure the cell is not already empty
+            while (grid[row][col] == 0) {
+                row = Random.nextInt(0, 9)
+                col = Random.nextInt(0, 9)
+            }
+
+            grid[row][col] = 0
+        }
+    }
+
+
+    operator fun iterator():Iterator<Int>{
+        return SudokuIterator(this)
+    }
+
+
+    private fun isValid(r: Int, c: Int, k: Int, grid: Array<Array<Int>>): Boolean{
         // checking row
         if (k in grid[r])
             return false
@@ -75,8 +92,12 @@ class Sudoku {
         return retVal
     }
 
-    fun solve(){
-        fun solveInternal(r:Int = 0, c: Int = 0 ): Boolean{
+    fun solve():Boolean{
+        return solveWithGrid(grid)
+    }
+
+    private fun solveWithGrid(grid: Array<Array<Int>>):Boolean{
+        fun solveInternal(r:Int = 0, c: Int = 0): Boolean{
             if (r == 9){
                 return true
             }
@@ -87,8 +108,9 @@ class Sudoku {
                 return  solveInternal(r, c+1)
             }
             else{
-                for (k in 1..9){
-                    if (isValid(r,c,k)){
+                val randNum = (1..9).shuffled()
+                for (k in randNum){
+                    if (isValid(r,c,k, grid)){
                         grid[r][c] = k
                         if (solveInternal(r,c+1))
                             return true
@@ -99,7 +121,27 @@ class Sudoku {
             }
         }
 
-        solveInternal()
+        return solveInternal(0,0)
     }
 
+}
+
+class SudokuIterator(private val sudoku: Sudoku) : Iterator<Int> {
+    private var row = 0
+    private var col = 0
+
+    override fun hasNext(): Boolean {
+        return row < 9 && col < 9
+    }
+
+    override fun next(): Int {
+        if (!hasNext()) throw NoSuchElementException()
+        val value = sudoku.grid[row][col]
+        col++
+        if (col >= 9) {
+            col = 0
+            row++
+        }
+        return value
+    }
 }

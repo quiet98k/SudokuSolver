@@ -22,7 +22,15 @@ class SudokuTest {
 
         test.solve()
         println(test)
+    }
 
-
+    @Test
+    fun testEmpty(){
+        for (i in 0..100){
+            val test = Sudoku("easy")
+            println(test)
+            assert(test.solve())
+            println(test)
+        }
     }
 }
